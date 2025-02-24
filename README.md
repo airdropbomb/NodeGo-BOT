@@ -28,7 +28,7 @@ Note:
 
 1. **Clone The Repositories:**
    ```bash
-   git clone https://github.com/vonssy/NodeGo-BOT.git
+   git clone https://github.com/airdropbomb/NodeGo-BOT.git
    ```
    ```bash
    cd NodeGo-BOT
