@@ -33,14 +33,16 @@ class NodeGo:
         )
 
     def welcome(self):
-        print(
-            f"""
-        {Fore.GREEN + Style.BRIGHT}Auto Ping {Fore.BLUE + Style.BRIGHT}NodeGo - BOT
-            """
-            f"""
-        {Fore.GREEN + Style.BRIGHT}Rey? {Fore.YELLOW + Style.BRIGHT}<INI WATERMARK>
-            """
-        )
+        banner = f"""
+{Fore.CYAN + Style.BRIGHT}  █████╗ ██████╗ ██████╗     ███╗   ██╗ ██████╗ ██████╗ ███████╗{Style.RESET_ALL}
+{Fore.GREEN + Style.BRIGHT}██╔══██╗██╔══██╗██╔══██╗    ████╗  ██║██╔═══██╗██╔══██╗██╔════╝{Style.RESET_ALL}
+{Fore.GREEN + Style.BRIGHT}███████║██║  ██║██████╔╝    ██╔██╗ ██║██║   ██║██║  ██║█████╗  {Style.RESET_ALL}
+{Fore.GREEN + Style.BRIGHT}██╔══██║██║  ██║██╔══██╗    ██║╚██╗██║██║   ██║██║  ██║██╔══╝  {Style.RESET_ALL}
+{Fore.CYAN + Style.BRIGHT} ██║  ██║██████╔╝██████╔╝    ██║ ╚████║╚██████╔╝██████╔╝███████╗{Style.RESET_ALL}
+{Fore.CYAN + Style.BRIGHT} ╚═╝  ╚═╝╚═════╝ ╚═════╝     ╚═╝  ╚═══╝ ╚═════╝ ╚═════╝ ╚══════╝{Style.RESET_ALL}
+{Fore.YELLOW + Style.BRIGHT}        Auto Ping BOT - Created by ADB{Style.RESET_ALL}
+        """
+        print(banner)
 
     def format_seconds(self, seconds):
         hours, remainder = divmod(seconds, 3600)
@@ -379,10 +381,10 @@ class NodeGo:
             print(
                 f"{Fore.CYAN + Style.BRIGHT}[ {datetime.now().astimezone(wib).strftime('%x %X %Z')} ]{Style.RESET_ALL}"
                 f"{Fore.WHITE + Style.BRIGHT} | {Style.RESET_ALL}"
-                f"{Fore.BLUE + Style.BRIGHT}Wait For 2 Minutes For Next Ping...{Style.RESET_ALL}",
+                f"{Fore.BLUE + Style.BRIGHT}Wait For 3 Minutes For Next Ping...{Style.RESET_ALL}",
                 end="\r"
             )
-            await asyncio.sleep(2 * 60)
+            await asyncio.sleep(3 * 60)  # Changed from 2 minutes to 3 minutes
 
     async def process_get_user_data(self, token: str, email: str, use_proxy: bool):
         proxy = self.get_next_proxy_for_account(email) if use_proxy else None
