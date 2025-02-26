@@ -35,9 +35,9 @@ class NodeGo:
     def welcome(self):
         banner = f"""
 {Fore.CYAN + Style.BRIGHT}  █████╗ ██████╗ ██████╗     ███╗   ██╗ ██████╗ ██████╗ ███████╗{Style.RESET_ALL}
-{Fore.GREEN + Style.BRIGHT}██╔══██╗██╔══██╗██╔══██╗    ████╗  ██║██╔═══██╗██╔══██╗██╔════╝{Style.RESET_ALL}
-{Fore.GREEN + Style.BRIGHT}███████║██║  ██║██████╔╝    ██╔██╗ ██║██║   ██║██║  ██║█████╗  {Style.RESET_ALL}
-{Fore.GREEN + Style.BRIGHT}██╔══██║██║  ██║██╔══██╗    ██║╚██╗██║██║   ██║██║  ██║██╔══╝  {Style.RESET_ALL}
+{Fore.CYAN + Style.BRIGHT} ██╔══██╗██╔══██╗██╔══██╗    ████╗  ██║██╔═══██╗██╔══██╗██╔════╝{Style.RESET_ALL}
+{Fore.CYAN + Style.BRIGHT} ███████║██║  ██║██████╔╝    ██╔██╗ ██║██║   ██║██║  ██║█████╗  {Style.RESET_ALL}
+{Fore.CYAN + Style.BRIGHT} ██╔══██║██║  ██║██╔══██╗    ██║╚██╗██║██║   ██║██║  ██║██╔══╝  {Style.RESET_ALL}
 {Fore.CYAN + Style.BRIGHT} ██║  ██║██████╔╝██████╔╝    ██║ ╚████║╚██████╔╝██████╔╝███████╗{Style.RESET_ALL}
 {Fore.CYAN + Style.BRIGHT} ╚═╝  ╚═╝╚═════╝ ╚═════╝     ╚═╝  ╚═══╝ ╚═════╝ ╚═════╝ ╚══════╝{Style.RESET_ALL}
 {Fore.YELLOW + Style.BRIGHT}        Auto Ping BOT - Created by ADB{Style.RESET_ALL}
