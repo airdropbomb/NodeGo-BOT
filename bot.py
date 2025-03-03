@@ -264,7 +264,7 @@ class NodeGo:
                     f"Task {title} Failed: {str(e)}"
                 )
             
-async def send_ping(self, token: str, email: str, num_id: int, proxy=None, retries=5):
+    async def send_ping(self, token: str, email: str, num_id: int, proxy=None, retries=5):
     url = "https://nodego.ai/api/user/nodes/ping"
     timestamp = int(datetime.now().timestamp())
     data = json.dumps({"type": "extension", "timestamp": timestamp})  # Add unique timestamp
