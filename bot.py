@@ -265,30 +265,16 @@ class NodeGo:
                 )
             
     async def send_ping(self, token: str, email: str, num_id: int, proxy=None, retries=5):
-    url = "https://nodego.ai/api/user/nodes/ping"
-    timestamp = int(datetime.now().timestamp())
-    data = json.dumps({"type": "extension", "timestamp": timestamp})  # Add unique timestamp
-    headers = {
-        "Accept": "application/json, text/plain, */*",
-        "Authorization": f"Bearer {token}",
-        "Content-Length": str(len(data)),
-        "Content-Type": "application/json",
-        "User-Agent": FakeUserAgent().random
-    }
-        # Uncomment below to use original headers if simplified ones fail
-        # headers = {
-        #     "Accept": "application/json, text/plain, */*",
-        #     "Accept-Language": "id-ID,id;q=0.9,en-US;q=0.8,en;q=0.7",
-        #     "Authorization": f"Bearer {token}",
-        #     "Content-Length": str(len(data)),
-        #     "Content-Type": "application/json",
-        #     "Origin": "chrome-extension://jbmdcnidiaknboflpljihfnbonjgegah",
-        #     "Sec-Fetch-Dest": "empty",
-        #     "Sec-Fetch-Mode": "cors",
-        #     "Sec-Fetch-Site": "none",
-        #     "Sec-Fetch-Storage-Access": "active",
-        #     "User-Agent": FakeUserAgent().random
-        # }
+        url = "https://nodego.ai/api/user/nodes/ping"
+        timestamp = int(datetime.now().timestamp())  # Unique timestamp for each request
+        data = json.dumps({"type": "extension", "timestamp": timestamp})
+        headers = {
+            "Accept": "application/json, text/plain, */*",
+            "Authorization": f"Bearer {token}",
+            "Content-Length": str(len(data)),
+            "Content-Type": "application/json",
+            "User-Agent": FakeUserAgent().random
+        }
         for attempt in range(retries):
             try:
                 response = await asyncio.to_thread(requests.post, url=url, headers=headers, data=data, proxy=proxy, timeout=60, impersonate="safari15_5")
@@ -365,10 +351,10 @@ class NodeGo:
             print(
                 f"{Fore.CYAN + Style.BRIGHT}[ {datetime.now().astimezone(wib).strftime('%x %X %Z')} ]{Style.RESET_ALL}"
                 f"{Fore.WHITE + Style.BRIGHT} | {Style.RESET_ALL}"
-                f"{Fore.BLUE + Style.BRIGHT}Wait For 3 Minutes For Next Ping...{Style.RESET_ALL}",
+                f"{Fore.BLUE + Style.BRIGHT}Wait For 10 Minutes For Next Ping...{Style.RESET_ALL}",
                 end="\r"
             )
-            await asyncio.sleep(10 * 60)
+            await asyncio.sleep(10 * 60)  # Increased to 10 minutes
 
     async def process_get_user_data(self, token: str, email: str, use_proxy: bool):
         proxy = self.get_next_proxy_for_account(email) if use_proxy else None
@@ -425,7 +411,7 @@ class NodeGo:
                         tasks.append(asyncio.create_task(self.process_accounts(token, email, node_count, use_proxy)))
                     else:
                         self.log(f"{Fore.RED}Skipping invalid token: {token[:10]}...{Style.RESET_ALL}")
-                    await asyncio.sleep(2)  # Delay between accounts to avoid rate limiting
+                    await asyncio.sleep(2)  # Delay between accounts
 
             await asyncio.gather(*tasks)
 
