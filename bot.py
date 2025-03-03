@@ -32,7 +32,8 @@ class NodeGo:
             flush=True
         )
 
-    def welcome(self):
+   def welcome(self):
+    banner = f"""
 {Fore.CYAN + Style.BRIGHT}  █████╗ ██████╗ ██████╗     ███╗   ██╗ ██████╗ ██████╗ ███████╗{Style.RESET_ALL}
 {Fore.CYAN + Style.BRIGHT} ██╔══██╗██╔══██╗██╔══██╗    ████╗  ██║██╔═══██╗██╔══██╗██╔════╝{Style.RESET_ALL}
 {Fore.CYAN + Style.BRIGHT} ███████║██║  ██║██████╔╝    ██╔██╗ ██║██║   ██║██║  ██║█████╗  {Style.RESET_ALL}
@@ -40,8 +41,8 @@ class NodeGo:
 {Fore.CYAN + Style.BRIGHT} ██║  ██║██████╔╝██████╔╝    ██║ ╚████║╚██████╔╝██████╔╝███████╗{Style.RESET_ALL}
 {Fore.CYAN + Style.BRIGHT} ╚═╝  ╚═╝╚═════╝ ╚═════╝     ╚═╝  ╚═══╝ ╚═════╝ ╚═════╝ ╚══════╝{Style.RESET_ALL}
 {Fore.YELLOW + Style.BRIGHT}        Auto Ping BOT - Created by ADB{Style.RESET_ALL}
-        """
-        print(banner)
+    """
+    print(banner)
 
     def format_seconds(self, seconds):
         hours, remainder = divmod(seconds, 3600)
