@@ -31,7 +31,6 @@ class NodeGo:
             f"{Fore.WHITE + Style.BRIGHT} | {Style.RESET_ALL}{message}",
             flush=True
         )
-
     def welcome(self):
         banner = f"""
 {Fore.CYAN + Style.BRIGHT}  █████╗ ██████╗ ██████╗     ███╗   ██╗ ██████╗ ██████╗ ███████╗{Style.RESET_ALL}
