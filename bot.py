@@ -107,17 +107,22 @@ class NodeGo:
             header, payload, signature = token.split(".")
             decoded_payload = base64.urlsafe_b64decode(payload + "==").decode("utf-8")
             parsed_payload = json.loads(decoded_payload)
-            email = parsed_payload["email"]
-            
+            email = parsed_payload.get("email", "Unknown")
+            exp = parsed_payload.get("exp", None)
+            if exp:
+                exp_time = datetime.fromtimestamp(exp).astimezone(wib)
+                self.log(f"{Fore.YELLOW}Token for {email} expires at: {exp_time}{Style.RESET_ALL}")
             return email
         except Exception as e:
+            self.log(f"{Fore.RED}Failed to decode token: {e}{Style.RESET_ALL}")
             return None
     
     def mask_account(self, account):
         if '@' in account:
             local, domain = account.split('@', 1)
-            mask_account = local[:3] + '*' * 3 + local[-3:]
+            mask_account = local[:3] + '*' * 3 + local[-3:] if len(local) > 6 else local[:1] + '*' * 3
             return f"{mask_account}@{domain}"
+        return account
     
     def print_message(self, account, proxy, color, message):
         self.log(
@@ -125,7 +130,7 @@ class NodeGo:
             f"{Fore.WHITE + Style.BRIGHT} {account} {Style.RESET_ALL}"
             f"{Fore.MAGENTA + Style.BRIGHT}-{Style.RESET_ALL}"
             f"{Fore.CYAN + Style.BRIGHT} Proxy: {Style.RESET_ALL}"
-            f"{Fore.WHITE + Style.BRIGHT}{proxy}{Style.RESET_ALL}"
+            f"{Fore.WHITE + Style.BRIGHT}{proxy if proxy else 'None'}{Style.RESET_ALL}"
             f"{Fore.MAGENTA + Style.BRIGHT} - {Style.RESET_ALL}"
             f"{Fore.CYAN + Style.BRIGHT}Status:{Style.RESET_ALL}"
             f"{color + Style.BRIGHT} {message} {Style.RESET_ALL}"
@@ -183,13 +188,8 @@ class NodeGo:
                 if attempt < retries - 1:
                     await asyncio.sleep(5)
                     continue
-
-                if not "520" in str(e):
-                    self.rotate_proxy_for_account(email) if use_proxy else None
-
                 return self.print_message(self.mask_account(email), proxy, Fore.RED, 
-                    f"GET User Data Failed: "
-                    f"{Fore.YELLOW + Style.BRIGHT}{str(e)}{Style.RESET_ALL}"
+                    f"GET User Data Failed: {str(e)}"
                 )
             
     async def claim_checkin(self, token: str, email: str, day_checkin: int, proxy=None, retries=5):
@@ -204,11 +204,8 @@ class NodeGo:
                 response = await asyncio.to_thread(requests.post, url=url, headers=headers, proxy=proxy, timeout=60, impersonate="safari15_5")
                 if response.status_code == 400:
                     return self.print_message(self.mask_account(email), proxy, Fore.WHITE, 
-                        f"Check-In Day {day_checkin}"
-                        f"{Fore.RED + Style.BRIGHT} Isn't Claimed: {Style.RESET_ALL}"
-                        f"{Fore.YELLOW + Style.BRIGHT} Already Claimed{Style.RESET_ALL}"
+                        f"Check-In Day {day_checkin} Already Claimed"
                     )
-                
                 response.raise_for_status()
                 result = response.json()
                 return result["metadata"]
@@ -216,10 +213,8 @@ class NodeGo:
                 if attempt < retries - 1:
                     await asyncio.sleep(5)
                     continue
-
                 return self.print_message(self.mask_account(email), proxy, Fore.RED, 
-                    f"Checkin Day {day_checkin} Isn't Claimed: "
-                    f"{Fore.YELLOW + Style.BRIGHT}{str(e)}{Style.RESET_ALL}"
+                    f"Checkin Day {day_checkin} Failed: {str(e)}"
                 )
 
     async def task_lists(self, token: str, email: str, proxy=None, retries=5):
@@ -238,10 +233,8 @@ class NodeGo:
                 if attempt < retries - 1:
                     await asyncio.sleep(5)
                     continue
-
                 return self.print_message(self.mask_account(email), proxy, Fore.RED, 
-                    f"GET Available Tasks Failed: "
-                    f"{Fore.YELLOW + Style.BRIGHT}{str(e)}{Style.RESET_ALL}"
+                    f"GET Available Tasks Failed: {str(e)}"
                 )
             
     async def complete_tasks(self, token: str, email: str, task_id: str, title: str, proxy=None, retries=5):
@@ -258,11 +251,8 @@ class NodeGo:
                 response = await asyncio.to_thread(requests.post, url=url, headers=headers, data=data, proxy=proxy, timeout=60, impersonate="safari15_5")
                 if response.status_code == 400:
                     return self.print_message(self.mask_account(email), proxy, Fore.WHITE, 
-                        f"Task {title}"
-                        f"{Fore.RED + Style.BRIGHT} Isn't Completed: {Style.RESET_ALL}"
-                        f"{Fore.YELLOW + Style.BRIGHT}Not Eligible{Style.RESET_ALL}"
+                        f"Task {title} Not Eligible"
                     )
-                
                 response.raise_for_status()
                 result = response.json()
                 return result["metadata"]
@@ -270,28 +260,35 @@ class NodeGo:
                 if attempt < retries - 1:
                     await asyncio.sleep(5)
                     continue
-
                 return self.print_message(self.mask_account(email), proxy, Fore.RED, 
-                    f"Task {title} Isn't Completed: "
-                    f"{Fore.YELLOW + Style.BRIGHT}{str(e)}{Style.RESET_ALL}"
+                    f"Task {title} Failed: {str(e)}"
                 )
             
     async def send_ping(self, token: str, email: str, num_id: int, proxy=None, retries=5):
         url = "https://nodego.ai/api/user/nodes/ping"
         data = json.dumps({"type":"extension"})
+        # Simplified headers for testing
         headers = {
             "Accept": "application/json, text/plain, */*",
-            "Accept-Language": "id-ID,id;q=0.9,en-US;q=0.8,en;q=0.7",
             "Authorization": f"Bearer {token}",
             "Content-Length": str(len(data)),
             "Content-Type": "application/json",
-            "Origin": "chrome-extension://jbmdcnidiaknboflpljihfnbonjgegah",
-            "Sec-Fetch-Dest": "empty",
-            "Sec-Fetch-Mode": "cors",
-            "Sec-Fetch-Site": "none",
-            "Sec-Fetch-Storage-Access": "active",
             "User-Agent": FakeUserAgent().random
         }
+        # Uncomment below to use original headers if simplified ones fail
+        # headers = {
+        #     "Accept": "application/json, text/plain, */*",
+        #     "Accept-Language": "id-ID,id;q=0.9,en-US;q=0.8,en;q=0.7",
+        #     "Authorization": f"Bearer {token}",
+        #     "Content-Length": str(len(data)),
+        #     "Content-Type": "application/json",
+        #     "Origin": "chrome-extension://jbmdcnidiaknboflpljihfnbonjgegah",
+        #     "Sec-Fetch-Dest": "empty",
+        #     "Sec-Fetch-Mode": "cors",
+        #     "Sec-Fetch-Site": "none",
+        #     "Sec-Fetch-Storage-Access": "active",
+        #     "User-Agent": FakeUserAgent().random
+        # }
         for attempt in range(retries):
             try:
                 response = await asyncio.to_thread(requests.post, url=url, headers=headers, data=data, proxy=proxy, timeout=60, impersonate="safari15_5")
@@ -299,40 +296,39 @@ class NodeGo:
                 result = response.json()
                 return result["metadata"]
             except Exception as e:
+                error_msg = str(e)
+                status_code = getattr(e, 'response.status_code', 'N/A') if hasattr(e, 'response') else 'N/A'
+                if hasattr(e, 'response') and e.response is not None:
+                    try:
+                        error_msg += f" - Response: {e.response.text}"
+                    except:
+                        pass
                 if attempt < retries - 1:
+                    self.log(f"[Account: {self.mask_account(email)}] Retry {attempt + 1}/{retries} failed: {error_msg} (Status: {status_code})")
                     await asyncio.sleep(5)
                     continue
-
                 return self.print_message(self.mask_account(email), proxy, Fore.WHITE, 
                     f"Node {num_id} "
                     f"{Fore.MAGENTA + Style.BRIGHT}-{Style.RESET_ALL}"
                     f"{Fore.RED + Style.BRIGHT} PING Failed: {Style.RESET_ALL}"
-                    f"{Fore.YELLOW + Style.BRIGHT}{str(e)}{Style.RESET_ALL}"
+                    f"{Fore.YELLOW + Style.BRIGHT}{error_msg} (Status: {status_code}){Style.RESET_ALL}"
                 )
 
     async def process_daily_checkin(self, user, token: str, email: str, use_proxy: bool):
         while True:
             proxy = self.get_next_proxy_for_account(email) if use_proxy else None
-
             day_checkin = user.get("checkinDay", 0)
-
             claim = await self.claim_checkin(token, email, day_checkin, proxy)
             if claim:
                 message = claim.get("message", "N/A")
                 self.print_message(self.mask_account(email), proxy, Fore.WHITE, 
-                    f"Check-In Day {day_checkin+1}"
-                    f"{Fore.GREEN + Style.BRIGHT} Is Claimed {Style.RESET_ALL}"
-                    f"{Fore.MAGENTA + Style.BRIGHT}-{Style.RESET_ALL}"
-                    f"{Fore.CYAN + Style.BRIGHT} Reward: {Style.RESET_ALL}"
-                    f"{Fore.WHITE + Style.BRIGHT}{message}{Style.RESET_ALL}"
+                    f"Check-In Day {day_checkin+1} Claimed - Reward: {message}"
                 )
-
             await asyncio.sleep(12 * 60 * 60)
 
     async def process_complete_tasks(self, user, token: str, email: str, use_proxy: bool):
         while True:
             proxy = self.get_next_proxy_for_account(email) if use_proxy else None
-
             completed_tasks = user.get("socialTask", [])
             tasks = await self.task_lists(token, email, proxy)
             if tasks:
@@ -341,82 +337,64 @@ class NodeGo:
                         task_id = task.get("code")
                         title = task.get("title")
                         reward = task.get("reward")
-
                         if task_id in completed_tasks:
                             continue
-
                         complete = await self.complete_tasks(token, email, task_id, title, proxy)
                         if complete and complete.get("message") == "Task claimed successfully":
                             self.print_message(self.mask_account(email), proxy, Fore.WHITE, 
-                                f"Task {title}"
-                                f"{Fore.GREEN + Style.BRIGHT} Is Completed {Style.RESET_ALL}"
-                                f"{Fore.MAGENTA + Style.BRIGHT}-{Style.RESET_ALL}"
-                                f"{Fore.CYAN + Style.BRIGHT} Reward: {Style.RESET_ALL}"
-                                f"{Fore.WHITE + Style.BRIGHT}{reward} PTS{Style.RESET_ALL}"
+                                f"Task {title} Completed - Reward: {reward} PTS"
                             )
-
             await asyncio.sleep(24 * 60 * 60)
 
     async def process_send_ping(self, token: str, email: str, num_id: int, use_proxy: bool):
         while True:
             proxy = self.get_next_proxy_for_account(num_id) if use_proxy else None
-
             print(
                 f"{Fore.CYAN + Style.BRIGHT}[ {datetime.now().astimezone(wib).strftime('%x %X %Z')} ]{Style.RESET_ALL}"
                 f"{Fore.WHITE + Style.BRIGHT} | {Style.RESET_ALL}"
-                f"{Fore.BLUE + Style.BRIGHT}Try to Sent Ping...{Style.RESET_ALL}                                   ",
+                f"{Fore.BLUE + Style.BRIGHT}Try to Send Ping...{Style.RESET_ALL}                                   ",
                 end="\r",
                 flush=True
             )
-
             ping = await self.send_ping(token, email, num_id, proxy)
             if ping:
                 message = ping.get("message")
                 self.print_message(self.mask_account(email), proxy, Fore.WHITE, 
-                    f"Node {num_id}"
-                    f"{Fore.MAGENTA + Style.BRIGHT} - {Style.RESET_ALL}"
-                    f"{Fore.GREEN + Style.BRIGHT}{message}{Style.RESET_ALL}"
+                    f"Node {num_id} - {message}"
                 )
-
             print(
                 f"{Fore.CYAN + Style.BRIGHT}[ {datetime.now().astimezone(wib).strftime('%x %X %Z')} ]{Style.RESET_ALL}"
                 f"{Fore.WHITE + Style.BRIGHT} | {Style.RESET_ALL}"
                 f"{Fore.BLUE + Style.BRIGHT}Wait For 3 Minutes For Next Ping...{Style.RESET_ALL}",
                 end="\r"
             )
-            await asyncio.sleep(3 * 60)  # Changed from 2 minutes to 3 minutes
+            await asyncio.sleep(3 * 60)
 
     async def process_get_user_data(self, token: str, email: str, use_proxy: bool):
         proxy = self.get_next_proxy_for_account(email) if use_proxy else None
-
         user = None
         while user is None:
             user = await self.user_data(token, email, use_proxy, proxy)
             if not user:
                 await asyncio.sleep(5)
                 continue
-
-            self.print_message(self.mask_account(email), proxy, Fore.GREEN, 
-                f"GET User Data Success"
-            )
+            self.print_message(self.mask_account(email), proxy, Fore.GREEN, "GET User Data Success")
             return user
         
     async def process_accounts(self, token: str, email: str, node_count: int, use_proxy: bool):
         user = await self.process_get_user_data(token, email, use_proxy)
         if user:
-
-            tasks = []
-            tasks.append(asyncio.create_task(self.process_daily_checkin(user, token, email, use_proxy)))
-            tasks.append(asyncio.create_task(self.process_complete_tasks(user, token, email, use_proxy)))
+            tasks = [
+                asyncio.create_task(self.process_daily_checkin(user, token, email, use_proxy)),
+                asyncio.create_task(self.process_complete_tasks(user, token, email, use_proxy))
+            ]
             if use_proxy:
                 for i in range(node_count):
                     num_id = i + 1
                     tasks.append(asyncio.create_task(self.process_send_ping(token, email, num_id, use_proxy)))
-
             else:
                 num_id = 1
                 tasks.append(asyncio.create_task(self.process_send_ping(token, email, num_id, use_proxy)))
-
             await asyncio.gather(*tasks)
         
     async def main(self):
@@ -425,10 +403,7 @@ class NodeGo:
                 tokens = [line.strip() for line in file if line.strip()]
 
             node_count, use_proxy_choice = self.print_question()
-
-            use_proxy = False
-            if use_proxy_choice in [1, 2]:
-                use_proxy = True
+            use_proxy = use_proxy_choice in [1, 2]
 
             self.clear_terminal()
             self.welcome()
@@ -442,21 +417,20 @@ class NodeGo:
 
             self.log(f"{Fore.CYAN + Style.BRIGHT}-{Style.RESET_ALL}"*75)
 
-            while True:
-                tasks = []
-                for token in tokens:
-                    if token:
-                        email = self.decode_token(token)
+            tasks = []
+            for token in tokens:
+                if token:
+                    email = self.decode_token(token)
+                    if email and "@" in email:
+                        tasks.append(asyncio.create_task(self.process_accounts(token, email, node_count, use_proxy)))
+                    else:
+                        self.log(f"{Fore.RED}Skipping invalid token: {token[:10]}...{Style.RESET_ALL}")
+                    await asyncio.sleep(2)  # Delay between accounts to avoid rate limiting
 
-                        if "@" in email:
-                            tasks.append(asyncio.create_task(self.process_accounts(token, email, node_count, use_proxy)))
-
-                await asyncio.gather(*tasks)
-                await asyncio.sleep(10)
+            await asyncio.gather(*tasks)
 
         except FileNotFoundError:
             self.log(f"{Fore.RED}File 'tokens.txt' Not Found.{Style.RESET_ALL}")
-            return
         except Exception as e:
             self.log(f"{Fore.RED+Style.BRIGHT}Error: {e}{Style.RESET_ALL}")
             raise
