@@ -264,17 +264,17 @@ class NodeGo:
                     f"Task {title} Failed: {str(e)}"
                 )
             
-    async def send_ping(self, token: str, email: str, num_id: int, proxy=None, retries=5):
-        url = "https://nodego.ai/api/user/nodes/ping"
-        data = json.dumps({"type":"extension"})
-        # Simplified headers for testing
-        headers = {
-            "Accept": "application/json, text/plain, */*",
-            "Authorization": f"Bearer {token}",
-            "Content-Length": str(len(data)),
-            "Content-Type": "application/json",
-            "User-Agent": FakeUserAgent().random
-        }
+       async def send_ping(self, token: str, email: str, num_id: int, proxy=None, retries=5):
+       url = "https://nodego.ai/api/user/nodes/ping"
+       timestamp = int(datetime.now().timestamp())
+       data = json.dumps({"type": "extension", "timestamp": timestamp})  # Add unique timestamp
+       headers = {
+        "Accept": "application/json, text/plain, */*",
+        "Authorization": f"Bearer {token}",
+        "Content-Length": str(len(data)),
+        "Content-Type": "application/json",
+        "User-Agent": FakeUserAgent().random
+    }
         # Uncomment below to use original headers if simplified ones fail
         # headers = {
         #     "Accept": "application/json, text/plain, */*",
@@ -368,7 +368,7 @@ class NodeGo:
                 f"{Fore.BLUE + Style.BRIGHT}Wait For 3 Minutes For Next Ping...{Style.RESET_ALL}",
                 end="\r"
             )
-            await asyncio.sleep(3 * 60)
+            await asyncio.sleep(10 * 60)
 
     async def process_get_user_data(self, token: str, email: str, use_proxy: bool):
         proxy = self.get_next_proxy_for_account(email) if use_proxy else None
